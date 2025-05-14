@@ -1,0 +1,153 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity sys_col is
+port(
+	D_in : in std_logic;
+	S_in : in std_logic;
+	reset_in : in std_logic;
+	clk100mhz : in std_logic;
+	
+	data_out : out std_logic_vector(7 downto 0);
+	EEP_out : out std_logic;
+	EOD_out : out std_logic;
+	SOD_out	: out std_logic;
+	p_err_out : out std_logic;
+	valid_out : out std_logic
+	);
+end entity;
+
+
+architecture sys_col_arch of sys_col is
+
+signal clk_reg : std_logic;
+signal twobit : std_logic_vector(1 downto 0);
+signal ready_sig : std_logic;
+ 
+signal fct_sig : std_logic;
+signal nul_sig : std_logic;
+signal ts_sig : std_logic;
+signal nchar_sig : std_logic;
+signal eep_sig : std_logic;
+signal eod_sig : std_logic;
+signal p_err_sig : std_logic;
+signal reset_sig : std_logic;
+
+component clock_create 
+port(
+D : in std_logic;
+S : in std_logic;
+Clk : out std_logic
+);
+end component;
+
+component data_collect
+Port(
+Clk : in std_logic;
+D : in std_logic;
+two_bit_d : out std_logic_vector (1 downto 0)
+);
+end component;
+
+component SM1 
+Port(
+Clk : in std_logic;
+reset : in std_logic;
+ready : in std_logic;
+Data_in : in std_logic_vector (1 downto 0);
+
+FCT : out std_logic;
+NUL : out std_logic;
+TS : out std_logic;
+Nchar : out std_logic;
+EEP : out std_logic;
+EOD : out std_logic;
+p_err : out std_logic;
+SOD : out std_logic;
+Valid : out std_logic;
+Data_out : out std_logic_vector(7 downto 0)
+
+);
+
+end component;
+
+component SM2 is
+port (
+	clk : in std_logic;
+	clk100mhz : in std_logic;
+	reset : in std_logic;
+	
+	FCT : in std_logic;
+	NUL : in std_logic;
+	TS : in std_logic;
+	Nchar : in std_logic;
+	EEP : in std_logic;
+	EOD : in std_logic;
+	p_err : in	std_logic;
+	
+	ready : out std_logic;
+	reset_out : out std_logic
+	);
+end component;
+
+begin
+
+clock_gen : clock_create
+	port map (
+		D => D_in,
+		S =>S_in,
+		Clk => clk_reg);
+		
+data_col : data_collect
+	port map (
+		Clk => clk_reg,
+		D => D_in,
+		two_bit_d => twobit);
+		
+sm1_comp : SM1
+	port map (
+		Clk => clk_reg,
+		reset => reset_sig,
+		ready => ready_sig,
+		Data_in => twobit,
+
+		FCT => fct_sig,
+		NUL => nul_sig,
+		TS => ts_sig,
+		Nchar => nchar_sig,
+		EEP => eep_sig,
+		EOD => eod_sig,
+		p_err => p_err_sig,
+		SOD => SOD_out,
+		Valid => valid_out,
+		Data_out => data_out);
+		
+sm2_comp : SM2
+	port map (
+		clk => clk_reg,
+		clk100mhz => clk100mhz,
+		reset => reset_in,
+		FCT => fct_sig,
+		NUL => nul_sig,
+		TS => ts_sig,
+		Nchar => nchar_sig,
+		EEP => eep_sig,
+		EOD => eod_sig,
+		p_err => p_err_sig,
+		
+		ready => ready_sig,
+		reset_out => reset_sig
+		);
+
+process(clk_reg)
+	begin 
+	if (rising_edge(clk_reg)) then
+		EEP_out <= eep_sig;
+		EOD_out <= eod_sig;
+		p_err_out <=p_err_sig;
+	end if;
+end process;
+
+end architecture;

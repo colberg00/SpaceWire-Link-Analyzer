@@ -1,0 +1,61 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity counter128 is
+port(
+	clk_gen : in std_logic;
+	-- clk skal være 100 mhz for at passe med timing 
+	clk : in std_logic; 
+	start : in std_logic;
+	reset : in std_logic;
+	stop :out std_logic
+	);
+end entity;
+
+
+
+architecture counter128_arch of counter128 is 
+
+signal count : std_logic_vector(13 downto 0);
+signal go : std_logic; 
+signal done : std_logic;
+
+component clock_domain_shift
+	port (
+	clk_in : in std_logic;
+	clk_out : in std_logic;
+	signal_in : in std_logic;
+	reset : in std_logic;
+	signal_out : out std_logic
+	);
+end component;
+
+begin
+
+shift1 : clock_domain_shift port map(clk_in => clk_gen, clk_out => clk, signal_in => start, reset => reset, signal_out => go);
+shift2 : clock_domain_shift port map(clk_in => clk, clk_out => clk_gen, signal_in => done, reset => reset, signal_out => stop);
+
+process(clk)
+	begin 
+	
+	if(rising_edge(clk)) then
+		if reset = '1' then
+			done <= '0';
+			count <= "00000000000000";	
+		elsif count = "11001000000000" then
+			done <= '1';
+			count <= "00000000000000";
+		elsif go = '1' then
+			done <= '0';
+			count <= "00000000000001";
+		else
+			done <= '0';
+			count <= count + 1;
+		end if;
+	end if;
+end process;
+
+end architecture;
+			

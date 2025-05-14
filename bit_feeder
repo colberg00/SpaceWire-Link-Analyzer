@@ -1,0 +1,90 @@
+
+--=======================================================
+--  Entity declaration
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity bit_feeder is
+    Port (
+        clk        : in  std_logic;
+        reset      : in  std_logic;
+        bit_out    : out std_logic;
+        strobe_out : out std_logic;
+		  data_start : out std_logic
+    );
+end entity bit_feeder;
+--=======================================================
+
+
+--=======================================================
+-- Architecture declaration
+
+architecture bit_feeder_arch of bit_feeder is
+
+    constant ROM_SIZE : integer := 1024;
+
+    type rom_type is array (0 to ROM_SIZE - 1) of std_logic;
+    signal rom : rom_type := (
+        0 => '1', 1 => '0', 2 => '1', 3 => '0', 4 => '1',
+        5 => '0', 6 => '1', 7 => '0', 8 => '1', 9 => '0',
+        10 => '1', others => '0'
+    );
+	 
+    signal address_rising  : integer range 0 to ROM_SIZE - 1 := 0;
+    signal address_falling : integer range 0 to ROM_SIZE - 1 := 0;
+    signal current_bit_rising  : std_logic := '0';
+    signal current_bit_falling : std_logic := '0';
+    signal current_bit         : std_logic := '0';
+	 signal start_of_data		 : std_logic := '0';
+
+begin
+
+    -- Rising edge process
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if reset = '1' then
+                address_rising <= 0;
+                current_bit_rising <= '0';
+					 start_of_data <= '1';
+            else
+                current_bit_rising <= rom(address_rising);
+                address_rising <= address_rising + 2;
+                start_of_data <= '0';
+            end if;
+        end if;
+    end process;
+
+    -- Falling edge process
+    process(clk)
+    begin
+        if falling_edge(clk) then
+            if reset = '1' then
+                address_falling <= 1;
+                current_bit_falling <= '0';
+            else
+                current_bit_falling <= rom(address_falling);
+                address_falling <= address_falling + 2;
+				end if;
+		  end if;
+    end process;
+
+    -- Output logic
+    current_bit <= current_bit_rising when clk = '1' else current_bit_falling;
+    bit_out     <= current_bit;
+    strobe_out  <= clk xor current_bit;
+	 data_start <= start_of_data;
+
+end bit_feeder_arch;
+--=======================================================
+
+
+
+
+
+
+
+

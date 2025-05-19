@@ -1,0 +1,62 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity bit_feeder_top is
+    Port (
+        clk        : in  std_logic;
+        reset      : in  std_logic;
+		  clk_recovered : out std_logic
+    );
+end entity bit_feeder_top;
+
+
+architecture top_arch of bit_feeder_top is
+
+    -- Internal signals to connect components
+    signal bit_line   : std_logic;
+    signal strobe_sig : std_logic;
+    signal data_start_sig : std_logic;
+
+    -- Component declaration for bit_feeder
+    component bit_feeder
+        Port (
+            clk        : in  std_logic;
+            reset      : in  std_logic;
+            bit_out    : out std_logic;
+            strobe_out : out std_logic;
+            data_start : out std_logic
+        );
+    end component;
+
+    -- Component declaration for clock_create
+    component clock_create
+        Port (
+            D   : in  std_logic;
+            S   : in  std_logic;
+            Clk : out std_logic
+        );
+    end component;
+
+begin
+
+    -- Instantiate bit_feeder
+    bit_feeder_inst : bit_feeder
+        Port map (
+            clk        => clk,
+            reset      => reset,
+            bit_out    => bit_line,
+            strobe_out => strobe_sig,
+            data_start => data_start_sig
+        );
+
+    -- Instantiate clock_create
+    clock_create_inst : clock_create
+        Port map (
+            D   => bit_line,
+            S   => strobe_sig,
+            Clk => clk_recovered
+        );
+
+end architecture top_arch;

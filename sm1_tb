@@ -25,7 +25,7 @@ signal Nchar_tb : std_logic;
 signal EEP_tb : std_logic;
 signal EOD_tb : std_logic;
 signal p_err_tb : std_logic;
-signal SOD_tb : std_logic;
+-- signal SOD_tb : std_logic;
 signal Valid_tb : std_logic;
 signal Data_out_tb : std_logic_vector(7 downto 0);
 
@@ -43,7 +43,7 @@ Nchar : out std_logic;
 EEP : out std_logic;
 EOD : out std_logic;
 p_err : out std_logic;
-SOD : out std_logic;
+-- SOD : out std_logic;
 Valid : out std_logic;
 Data_out : out std_logic_vector(7 downto 0)
 
@@ -83,7 +83,7 @@ begin
 			EEP => EEP_tb,
 			EOD => EOD_tb,
 			p_err => p_err_tb,
-			SOD => SOD_tb,
+			-- SOD => SOD_tb,
 			Valid => valid_tb,
 			Data_out => Data_out_tb
 		);
@@ -111,3 +111,4 @@ begin
 				end if;
 			end process;
 		end architecture;
+		

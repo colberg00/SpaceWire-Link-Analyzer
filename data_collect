@@ -20,7 +20,7 @@ signal bit0,bit1 : std_logic;
 			begin
 				if rising_edge(Clk) then
 				bit0 <= D;
-				two_bit_d <= bit1 & bit0;
+				two_bit_d <= bit0 & bit1;
 				end if;
 		end process;
 

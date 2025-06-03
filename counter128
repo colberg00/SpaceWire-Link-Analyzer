@@ -43,8 +43,9 @@ process(clk)
 	if(rising_edge(clk)) then
 		if reset = '1' then
 			done <= '0';
-			count <= "00000000000000";	
-		elsif count = "11001000000000" then
+			count <= "00000000000000";
+				-- 11001000000000 org men skal lige tjekkes
+		elsif count = "00000010000000" then -- 128
 			done <= '1';
 			count <= "00000000000000";
 		elsif go = '1' then
@@ -58,4 +59,4 @@ process(clk)
 end process;
 
 end architecture;
-			
+				

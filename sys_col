@@ -13,7 +13,7 @@ port(
 	data_out : out std_logic_vector(7 downto 0);
 	EEP_out : out std_logic;
 	EOD_out : out std_logic;
-	SOD_out	: out std_logic;
+	-- SOD_out	: out std_logic;
 	p_err_out : out std_logic;
 	valid_out : out std_logic
 	);
@@ -23,6 +23,7 @@ end entity;
 architecture sys_col_arch of sys_col is
 
 signal clk_reg : std_logic;
+signal dat_reg : std_logic;
 signal twobit : std_logic_vector(1 downto 0);
 signal ready_sig : std_logic;
  
@@ -65,7 +66,7 @@ Nchar : out std_logic;
 EEP : out std_logic;
 EOD : out std_logic;
 p_err : out std_logic;
-SOD : out std_logic;
+-- SOD : out std_logic;
 Valid : out std_logic;
 Data_out : out std_logic_vector(7 downto 0)
 
@@ -97,7 +98,7 @@ begin
 clock_gen : clock_create
 	port map (
 		D => D_in,
-		S =>S_in,
+		S => S_in,
 		Clk => clk_reg);
 		
 data_col : data_collect
@@ -120,7 +121,7 @@ sm1_comp : SM1
 		EEP => eep_sig,
 		EOD => eod_sig,
 		p_err => p_err_sig,
-		SOD => SOD_out,
+		-- SOD => SOD_out,
 		Valid => valid_out,
 		Data_out => data_out);
 		

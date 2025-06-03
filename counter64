@@ -44,7 +44,8 @@ process(clk)
 		if reset = '1' then
 			done <= '0';
 			count <= "0000000000";	
-		elsif count = "1010000000" then
+			-- org "1010000000" 
+		elsif count = "0001000000" then --64
 			done <= '1';
 			count <= "0000000000";
 		elsif go = '1' then
@@ -58,4 +59,4 @@ process(clk)
 end process;
 
 end architecture;
-			
+						

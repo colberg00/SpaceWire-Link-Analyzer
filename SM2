@@ -76,10 +76,10 @@ end component;
 	process(current_state)
 	begin
 			case current_state is
-				when started_ready =>
+				when errorwait =>
 					ready <= '1';
 					reset_out <= '0';
-				when reset_state|errorwait =>
+				when reset_state =>
 					ready <= '0';
 					reset_out <= '1';
 				when others =>
@@ -133,7 +133,8 @@ end component;
 					end if;
 				
 				when errorwait =>
-					if EEP = '1' or FCT = '1' or Nchar = '1' or TS = '1' or p_err = '1' then
+					if EEP = '1' -- or FCT = '1' or Nchar = '1' or TS = '1' or p_err = '1'
+					then
 						next_state <= reset_state;
 					elsif waitdone128 = '1' then 
 						next_state <= started_ready;

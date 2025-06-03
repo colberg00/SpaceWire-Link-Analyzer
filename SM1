@@ -17,7 +17,7 @@ Nchar : out std_logic;
 EEP : out std_logic;
 EOD : out std_logic;
 p_err : out std_logic;
-SOD : out std_logic;
+-- SOD : out std_logic;
 Valid : out std_logic;
 Data_out : out std_logic_vector(7 downto 0)
 
@@ -34,6 +34,21 @@ architecture sm1_arch of sm1 is
 	signal next_state : state_type;
 	signal data_hold : std_logic_vector (7 downto 0);
 	signal parity_accum : std_logic;
+	
+	Signal start_state : std_logic;
+	signal control_state : std_logic;
+	signal esc_state : std_logic;
+	signal data1_state : std_logic;
+	signal data2_state : std_logic;
+	signal data3_state : std_logic;
+	signal data4_state : std_logic;
+	signal escfct_state : std_logic;
+	signal t1_state : std_logic;
+	signal t2_state : std_logic;
+	signal t3_state : std_logic;
+	signal t4_state : std_logic;
+	signal standby_state : std_logic;
+	
 
 	
 	begin
@@ -51,59 +66,88 @@ architecture sm1_arch of sm1 is
 		
 		process(current_state, data_in)
 		begin
-			next_state <= current_state;
+			--next_state <= current_state;
+			start_state <= '0';
+			control_state <= '0';
+			esc_state <= '0';
+			data1_state <= '0';
+			data2_state <= '0';
+			data3_state <= '0';
+			data4_state <= '0';
+			escfct_state <= '0';
+			t1_state <= '0';
+			t2_state <= '0';
+			t3_state <= '0';
+			t4_state <= '0';
+			standby_state <= '0';
+			
 			
 			case current_state is
 			
 			when standby =>
 					if ready = '1' then
 						next_state <= start;
+						standby_state <= '1';
 					end if;
 				
 				when start =>
-					if data_in(1) = '1' then
+					start_state <='1';
+					if data_in(0) = '1' then
 						next_state <= control;
-					elsif data_in(1) = '0' then
+					elsif data_in(0) = '0' then
 						next_state <= data1;
 					end if;
 					
 				when control =>
-					if data_in = "11" or data_in = "10" or data_in = "00" then
+					control_state <= '1';
+					if data_in = "10" or data_in = "01" or data_in = "00" then
 						next_state <= start;
+					elsif data_in = "11" then
+						next_state <= ESC;
 					end if;
 				
 				when ESC =>
-					if data_in(1) = '1' then 
+					esc_state <= '1';
+					if data_in(0) = '1' then 
 						next_state <= escfct;
-					elsif data_in(1) = '0' then
+					elsif data_in(0) = '0' then
 						next_state <= t1;
 					end if;
 				 
 				when escfct =>
+					escfct_state <= '1';
 					next_state <= start;
 				
 				when data1 =>
+					data1_state <= '1';
 					next_state <= data2;
 				
 				when data2 =>
+					data2_state <= '1';
 					next_state <= data3;
 				
 				when data3 =>
+					data3_state <= '1';
 					next_state <= data4;
 				
 				when data4 =>
+					data4_state <= '1';
 					next_state <= start;
 					
 				when t1 =>
+					t1_state <= '1';
 					next_state <= t2;
 				
 				when t2 =>
+					t2_state <= '1';
 					next_state <= t3;
 			
 				when t3 =>
+					t3_state <= '1';
 					next_state <= t4;
 					
 				when t4 =>
+					t4_state <= '1';
 					next_state <= start;
 					
 				
@@ -133,7 +177,7 @@ architecture sm1_arch of sm1 is
 						data_hold(1 downto 0) <= data_in;
 					 
 					when others => 
-						null;
+						data_hold <= (others =>'0');
 				end case;
 			end if;
 		end process;
@@ -142,15 +186,18 @@ architecture sm1_arch of sm1 is
 		begin
 			if reset = '1' then
 				parity_accum <='0';
+				
 			elsif rising_edge(clk) then
+			
 				case current_state is 
-					when control|esc|data1|data2|data3|data4|escfct|t1|t2|t3|t4 =>
+					when control|esc|data1|data2|data3|data4|escfct|t1|t2|t3|t4|start =>
 						parity_accum <= parity_accum xor data_in(1) xor data_in(0);
-					when start =>
-						parity_accum <= '0';
+						
 					when others =>
 						null;
+						
 					end case;
+					
 				end if;
 			end process;
 		
@@ -164,7 +211,7 @@ architecture sm1_arch of sm1 is
 				EEP <='0';
 				EOD <='0';
 				p_err <='0';
-				SOD <='0';
+				-- SOD <='0';
 				Valid <='0';
 				Data_out <= (others => '0');
 				
@@ -178,7 +225,7 @@ architecture sm1_arch of sm1 is
 						end case;
 						
 					when ESC => 
-						if data_in(1) ='1' then 
+						if data_in(0) ='1' then 
 							NUL <= '1';
 						else 
 							TS <= '1';
@@ -186,9 +233,11 @@ architecture sm1_arch of sm1 is
 					
 					when data4 => 
 						Nchar <= '1';
+						
+					when data1 => 
+						-- SOD <= '1';
 					
 					when start =>
-						SOD <= '1';
 						Data_out <= data_hold;
 						if parity_accum='1' then
 							valid <= '1';
@@ -204,6 +253,8 @@ architecture sm1_arch of sm1 is
 				
 		
 end architecture sm1_arch;
+			
+		
 			
 		
 			

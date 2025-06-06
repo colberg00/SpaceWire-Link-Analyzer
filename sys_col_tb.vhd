@@ -1,0 +1,126 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_textio.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.numeric_std.all;
+
+library STD;
+use STD.textio.all;
+
+entity sys_col_tb is
+end entity;
+
+architecture sys_col_tb_arch of sys_col_tb is
+
+	signal clock_tb : std_logic;
+
+	signal D_in_tb : std_logic;
+	signal S_in_tb : std_logic;
+	signal reset_in_tb : std_logic;
+	signal clk100mhz_tb : std_logic;
+		
+	signal data_out_tb : std_logic_vector(7 downto 0);
+	signal EEP_out_tb : std_logic;
+	signal EOD_out_tb : std_logic;
+	-- signal SOD_out_tb	: std_logic;
+	signal p_err_out_tb : std_logic;
+	signal valid_out_tb : std_logic;
+
+	component sys_col 
+	port(
+		D_in : in std_logic;
+		S_in : in std_logic;
+		reset_in : in std_logic;
+		clk100mhz : in std_logic;
+		
+		data_out : out std_logic_vector(7 downto 0);
+		EEP_out : out std_logic;
+		EOD_out : out std_logic;
+		-- SOD_out	: out std_logic;
+		p_err_out : out std_logic;
+		valid_out : out std_logic
+		);
+	end component;
+	
+	
+	begin
+	
+		process
+		begin 	
+			clock_tb <= '0';
+			wait for 10 ns;
+			clock_tb <= '1';
+			wait for 10 ns;
+		end process;
+		
+		process
+		begin 
+			clk100mhz_tb <= '0';
+			wait for 5 ns;
+			clk100mhz_tb <= '1';
+			wait for 5 ns;
+		end process;
+		
+	
+		
+		DUT : sys_col port map(
+			D_in => D_in_tb,
+			S_in => S_in_tb,
+			reset_in => reset_in_tb,
+			clk100mhz => clk100mhz_tb,
+			
+			data_out => data_out_tb,
+			EEP_out => EEP_out_tb,
+			EOD_out => EOD_out_tb,
+			-- SOD_out	=> SOD_out_tb,
+			p_err_out => p_err_out_tb,
+			valid_out => valid_out_tb
+		);
+		
+		STIMULUS : process(clock_tb)
+		
+			file Fin : TEXT open READ_MODE is "input_file.txt";
+			file Fout : TEXT open WRITE_MODE is "output_file.txt";
+			variable current_line : line;
+			variable current_write_line : line;
+			variable D_v : std_logic;
+			variable S_v : std_logic;
+			variable reset_v : std_logic;
+			
+			
+			begin 
+				if rising_edge(clock_tb) then
+					
+						readline(Fin, current_line);
+						read(current_line, D_v);
+						read(current_line, S_v);
+						read(current_line, reset_v);
+						
+						
+						D_in_tb <= D_v;
+						S_in_tb <= S_v;
+						reset_in_tb <= reset_v;
+						
+						
+						write(current_write_line, string' ("data_out = "));
+						write(current_write_line, data_out_tb);
+						write(current_write_line, string' ("EEP_out = "));
+						write(current_write_line, EEP_out_tb);
+						write(current_write_line, string' ("EOD_out = "));
+						write(current_write_line, EOD_out_tb);
+						-- write(current_write_line, string' ("SOD_out = "));
+						-- write(current_write_line, SOD_out_tb);
+						write(current_write_line, string' ("p_err_out = "));
+						write(current_write_line, p_err_out_tb);
+						write(current_write_line, string' ("valid_out = "));
+						write(current_write_line, valid_out_tb);
+						writeline(Fout, current_write_line);
+						
+				end if;
+			end process;
+		end architecture;
+						
+			
+		
+	

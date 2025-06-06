@@ -1,0 +1,105 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_textio.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.numeric_std.all;
+
+library STD;
+use STD.textio.all;
+
+entity SM1_tb is
+end entity;
+
+architecture SM1_tb_arch of SM1_tb is
+
+signal Clk_tb : std_logic;
+signal reset_tb : std_logic;
+--signal ready_tb :  std_logic;
+signal Data_in_tb : std_logic_vector (1 downto 0);
+
+signal FCT_tb : std_logic;
+signal NUL_tb : std_logic;
+signal TS_tb : std_logic;
+signal Nchar_tb : std_logic;
+signal EEP_tb : std_logic;
+signal EOD_tb : std_logic;
+signal p_err_tb : std_logic;
+-- signal SOD_tb : std_logic;
+signal Valid_tb : std_logic;
+signal Data_out_tb : std_logic_vector(7 downto 0);
+
+component SM1
+Port(
+Clk : in std_logic;
+reset : in std_logic;
+--ready : in std_logic;
+Data_in : in std_logic_vector (1 downto 0);
+
+FCT : out std_logic;
+NUL : out std_logic;
+TS : out std_logic;
+Nchar : out std_logic;
+EEP : out std_logic;
+EOD : out std_logic;
+p_err : out std_logic;
+-- SOD : out std_logic;
+Valid : out std_logic;
+Data_out : out std_logic_vector(7 downto 0)
+
+);
+end component;
+
+begin
+	
+	
+		process
+		begin 	
+			clk_tb <= '0';
+			wait for 5 ns;
+			clk_tb <= '1';
+			wait for 5 ns;
+		end process;
+		
+			
+		
+		DUT : SM1 port map(
+			Clk => Clk_tb,
+			reset => reset_tb,
+			--ready => ready_tb,
+			Data_in => Data_in_tb,
+
+			FCT => FCT_tb,
+			NUL => NUL_tb,
+			TS => TS_tb,
+			Nchar => Nchar_tb,
+			EEP => EEP_tb,
+			EOD => EOD_tb,
+			p_err => p_err_tb,
+			-- SOD => SOD_tb,
+			Valid => valid_tb,
+			Data_out => Data_out_tb
+		);
+		
+		STIMULUS : process(Clk_tb)
+		
+			file Fin : TEXT open READ_MODE is "input_file_sm1.txt";
+			variable current_line : line;
+			variable Data_in_v : std_logic_vector(1 downto 0);
+			variable reset_v : std_logic;
+			
+			
+			begin 
+				if rising_edge(Clk_tb) then
+					
+						readline(Fin, current_line);
+						read(current_line, Data_in_v);
+						read(current_line, reset_v);		
+						
+						Data_in_tb <= Data_in_v;
+						--ready_tb <= ready_v;
+						reset_tb <= reset_v;
+				end if;
+			end process;
+		end architecture;
+		

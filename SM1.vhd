@@ -7,18 +7,16 @@ entity SM1 is
 Port(
 Clk : in std_logic;
 reset : in std_logic;
---ready : in std_logic;
 Data_in : in std_logic_vector (1 downto 0);
 
-FCT : out std_logic;
-NUL : out std_logic;
-TS : out std_logic;
-Nchar : out std_logic;
-EEP : out std_logic;
-EOD : out std_logic;
-p_err : out std_logic;
--- SOD : out std_logic;
-Valid : out std_logic;
+FCT : out std_logic :='0';
+NUL : out std_logic :='0';
+TS : out std_logic :='0';
+Nchar : out std_logic :='0';
+EEP : out std_logic :='0';
+EOD : out std_logic :='0';
+p_err : out std_logic :='0';
+Valid : out std_logic :='0';
 Data_out : out std_logic_vector(7 downto 0)
 
 );
@@ -35,6 +33,8 @@ architecture sm1_arch of sm1 is
 	signal data_hold : std_logic_vector (7 downto 0);
 	signal parity_accum : std_logic;
 	
+	signal clk_stable : std_logic;
+	
 	Signal start_state : std_logic;
 	signal control_state : std_logic;
 	signal esc_state : std_logic;
@@ -48,10 +48,16 @@ architecture sm1_arch of sm1 is
 	signal t3_state : std_logic;
 	signal t4_state : std_logic;
 	signal standby_state : std_logic;
+	signal stand_before  : std_logic;
+	signal kontrol_before : std_logic;
+	
+
 	
 
 	
 	begin
+	
+		
 	
 		process(Clk, reset)
 			begin 
@@ -66,7 +72,6 @@ architecture sm1_arch of sm1 is
 		
 		process(current_state, data_in)
 		begin
-			--next_state <= current_state;
 			start_state <= '0';
 			control_state <= '0';
 			esc_state <= '0';
@@ -80,6 +85,8 @@ architecture sm1_arch of sm1 is
 			t3_state <= '0';
 			t4_state <= '0';
 			standby_state <= '0';
+			
+
 			
 			
 			case current_state is
@@ -189,10 +196,25 @@ architecture sm1_arch of sm1 is
 			elsif rising_edge(clk) then
 			
 				case current_state is 
-					when control|esc|data1|data2|data3|data4|escfct|t1|t2|t3|t4|start =>
-						parity_accum <= parity_accum xor data_in(1) xor data_in(0);
-						
-					when others =>
+					when standby =>
+						parity_accum <= '0';
+						stand_before <='1';
+					
+					when start =>
+						if stand_before = '1' then
+							parity_accum <= '0';
+							stand_before <='0';
+						else
+							parity_accum <= parity_accum xor data_in(1) xor data_in(0);
+						end if;
+				
+					when esc|data2|data3|data4|escfct|t1|t2|t3|t4 =>
+							parity_accum <= parity_accum xor data_in(1) xor data_in(0);
+
+					when control|data1 =>
+						parity_accum <=  data_in(1) xor data_in(0);
+					
+					when others => 
 						null;
 						
 					end case;
@@ -202,7 +224,6 @@ architecture sm1_arch of sm1 is
 		
 		process(current_state, data_in, data_hold)
 			begin
-			
 				FCT <='0';
 				NUL <='0';
 				TS <='0';
@@ -210,12 +231,18 @@ architecture sm1_arch of sm1 is
 				EEP <='0';
 				EOD <='0';
 				p_err <='0';
-				-- SOD <='0';
 				Valid <='0';
 				Data_out <= (others => '0');
 				
 				case current_state is
+									
 					when control =>
+						if parity_accum = '1' then
+								valid <= '1';
+							else
+								p_err <= '1';
+						end if;
+						
 						case data_in is
 							when "00" => FCT <= '1';
 							when "01" => EOD <= '1';
@@ -233,16 +260,18 @@ architecture sm1_arch of sm1 is
 					when data4 => 
 						Nchar <= '1';
 						
-					when data1 => 
-						-- SOD <= '1';
 					
+					when data1 =>
+							if parity_accum = '1' then
+								valid <= '1';
+							else
+								p_err <= '1';
+							end if;
+					
+
 					when start =>
 						Data_out <= data_hold;
-						if parity_accum='1' then
-							valid <= '1';
-						else
-							p_err <= '1';
-						end if;
+						
 						
 					when others => 
 						null;

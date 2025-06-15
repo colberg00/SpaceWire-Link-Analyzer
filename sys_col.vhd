@@ -22,23 +22,23 @@ end entity;
 
 architecture sys_col_arch of sys_col is
  
-signal fct_sig1 : std_logic;
-signal nul_sig1 : std_logic;
-signal ts_sig1 : std_logic;
-signal nchar_sig1 : std_logic;
-signal eep_sig1 : std_logic;
-signal eod_sig1 : std_logic;
-signal p_err_sig1 : std_logic;
-signal reset_sig1 : std_logic;
+signal fct_sig1 : std_logic:='0';
+signal nul_sig1 : std_logic:='0';
+signal ts_sig1 : std_logic:='0';
+signal nchar_sig1 : std_logic:='0';
+signal eep_sig1 : std_logic:='0';
+signal eod_sig1 : std_logic:='0';
+signal p_err_sig1 : std_logic:='0';
+signal reset_sig1 : std_logic:='0';
 
-signal fct_sig2 : std_logic;
-signal nul_sig2 : std_logic;
-signal ts_sig2 : std_logic;
+signal fct_sig2 : std_logic:='0';
+signal nul_sig2 : std_logic:='0';
+signal ts_sig2 : std_logic:='0';
 signal nchar_sig2 : std_logic;
-signal eep_sig2 : std_logic;
-signal eod_sig2 : std_logic;
-signal p_err_sig2 : std_logic;
-signal reset_sig2 : std_logic;
+signal eep_sig2 : std_logic:='0';
+signal eod_sig2 : std_logic:='0';
+signal p_err_sig2 : std_logic:='0';
+signal reset_sig2 : std_logic:='0';
 
 
 
@@ -199,5 +199,6 @@ process(clk_gen)
 		Nchar_out <= nchar_sig1;
 	end if;
 end process;
+
 
 end architecture;

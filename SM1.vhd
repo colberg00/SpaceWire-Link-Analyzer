@@ -9,14 +9,14 @@ Clk : in std_logic;
 reset : in std_logic;
 Data_in : in std_logic_vector (1 downto 0);
 
-FCT : out std_logic :='0';
-NUL : out std_logic :='0';
-TS : out std_logic :='0';
-Nchar : out std_logic :='0';
-EEP : out std_logic :='0';
-EOD : out std_logic :='0';
-p_err : out std_logic :='0';
-Valid : out std_logic :='0';
+FCT : out std_logic;
+NUL : out std_logic;
+TS : out std_logic;
+Nchar : out std_logic;
+EEP : out std_logic;
+EOD : out std_logic;
+p_err : out std_logic;
+Valid : out std_logic;
 Data_out : out std_logic_vector(7 downto 0)
 
 );
@@ -63,6 +63,7 @@ architecture sm1_arch of sm1 is
 			begin 
 				if reset = '1' then
 					current_state <= standby;
+					
 				elsif rising_edge(clk) AND reset = '0' then 
 					current_state <= next_state;
 				end if;
@@ -72,22 +73,20 @@ architecture sm1_arch of sm1 is
 		
 		process(current_state, data_in)
 		begin
-			start_state <= '0';
-			control_state <= '0';
-			esc_state <= '0';
-			data1_state <= '0';
-			data2_state <= '0';
-			data3_state <= '0';
-			data4_state <= '0';
-			escfct_state <= '0';
-			t1_state <= '0';
-			t2_state <= '0';
-			t3_state <= '0';
-			t4_state <= '0';
-			standby_state <= '0';
-			
-
-			
+					start_state <= '0';
+					control_state <= '0';
+					esc_state <= '0';
+					data1_state <= '0';
+					data2_state <= '0';
+					data3_state <= '0';
+					data4_state <= '0';
+					escfct_state <= '0';
+					t1_state <= '0';
+					t2_state <= '0';
+					t3_state <= '0';
+					t4_state <= '0';
+					standby_state <= '0';
+					clk_stable <= '0';
 			
 			case current_state is
 			

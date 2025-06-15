@@ -17,14 +17,14 @@ architecture Sam_sys_tb_arch of sam_sys_tb is
 	signal clk50mhz_tb : std_logic :='0';
 	signal clk25mhz_tb : std_logic :='0';
 
-	signal data_out_tb : std_logic_vector(7 downto 0);
+	signal data_out_tb : std_logic_vector(7 downto 0) := "00000000";
 	signal EEP_out_tb : std_logic :='0';
 	signal EOD_out_tb : std_logic :='0';
 	signal Nchar_out_tb : std_logic :='0';
 	signal p_err_out_tb : std_logic :='0';
 	signal valid_out_tb : std_logic :='0';
 	
-	signal count : std_logic_vector(1 downto 0);
+	signal count : std_logic_vector(1 downto 0) := "00";
 	
 component sam_sys is
 port(

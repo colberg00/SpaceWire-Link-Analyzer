@@ -10,13 +10,13 @@ port (
 	clk50mhz : in std_logic;
 	reset : in std_logic;
 	
-	FCT : in std_logic :='0';
-	NUL : in std_logic :='0';
-	TS : in std_logic :='0';
-	Nchar : in std_logic :='0';
-	EEP : in std_logic :='0';
-	EOD : in std_logic :='0';
-	p_err : in	std_logic :='0';
+	FCT : in std_logic;
+	NUL : in std_logic;
+	TS : in std_logic;
+	Nchar : in std_logic;
+	EEP : in std_logic;
+	EOD : in std_logic;
+	p_err : in	std_logic;
 	
 	reset_out : out std_logic
 	);

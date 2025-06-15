@@ -19,6 +19,18 @@ end entity sam_sys;
 
 architecture sam_sys_arch of sam_sys is
 
+signal d_out : std_logic :='0';
+signal s_out : std_logic :='0'; 
+signal clk_save : std_logic :='0';
+signal two_bit_out : std_logic_vector(1 downto 0) := "00";
+signal clk_stable : std_logic :='0';
+signal data_done : std_logic_vector(7 downto 0) := "00000000";
+signal eep_done : std_logic :='0';
+signal eod_done : std_logic :='0';
+signal nchar_done : std_logic :='0';
+signal p_err_done : std_logic :='0';
+signal valid_done : std_logic :='0';
+
 component bit_feeder 
     Port (
         clk        : in  std_logic;
@@ -62,17 +74,7 @@ port(
 end component;
 
 
-signal d_out : std_logic;
-signal s_out : std_logic; 
-signal clk_save : std_logic :='0';
-signal two_bit_out : std_logic_vector(1 downto 0);
-signal clk_stable : std_logic :='0';
-signal data_done : std_logic_vector(7 downto 0);
-signal eep_done : std_logic :='0';
-signal eod_done : std_logic :='0';
-signal nchar_done : std_logic :='0';
-signal p_err_done : std_logic :='0';
-signal valid_done : std_logic :='0';
+
 
 
 begin

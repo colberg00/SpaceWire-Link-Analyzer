@@ -1,289 +1,252 @@
+-- Entitet: SM1 
+-- Beskrivelse: Finite State Machine, der processerer 2-bit input og samler
+--              dem til enten kontrol- eller data-tegn. Her håndteres de indsamlede
+--              tegn og udføres paritetstjek.
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_std.all;
 
 entity SM1 is
-Port(
-Clk : in std_logic;
-reset : in std_logic;
-Data_in : in std_logic_vector (1 downto 0);
+    Port(
+        clk       : in std_logic;
+        reset     : in std_logic;
+        Data_in   : in std_logic_vector(1 downto 0);
 
-FCT : out std_logic :='0';
-NUL : out std_logic :='0';
-TS : out std_logic :='0';
-Nchar : out std_logic :='0';
-EEP : out std_logic :='0';
-EOD : out std_logic :='0';
-p_err : out std_logic :='0';
-Valid : out std_logic :='0';
-Data_out : out std_logic_vector(7 downto 0)
-
-);
-
+        FCT       : out std_logic;
+        NUL       : out std_logic;
+        TS        : out std_logic;
+        Nchar     : out std_logic;
+        EEP       : out std_logic;
+        EOD       : out std_logic;
+        p_err     : out std_logic;
+        Valid     : out std_logic;
+        Data_out  : out std_logic_vector(7 downto 0)
+    );
 end entity SM1;
 
-architecture sm1_arch of sm1 is
+architecture sm1_arch of SM1 is
 
-	type state_type is (
-		start, control, esc, data1, data2, data3, data4, escfct, t1, t2, t3, t4, standby);
-		
-	signal current_state : state_type := standby;
-	signal next_state : state_type;
-	signal data_hold : std_logic_vector (7 downto 0);
-	signal parity_accum : std_logic;
-	
-	signal clk_stable : std_logic;
-	
-	Signal start_state : std_logic;
-	signal control_state : std_logic;
-	signal esc_state : std_logic;
-	signal data1_state : std_logic;
-	signal data2_state : std_logic;
-	signal data3_state : std_logic;
-	signal data4_state : std_logic;
-	signal escfct_state : std_logic;
-	signal t1_state : std_logic;
-	signal t2_state : std_logic;
-	signal t3_state : std_logic;
-	signal t4_state : std_logic;
-	signal standby_state : std_logic;
-	signal stand_before  : std_logic;
-	signal kontrol_before : std_logic;
-	
+    -- FSM-tilstande til fortolkning af de to input-bit
+    type state_type is (
+        start, control, esc, data1, data2, data3, data4,
+        escfct, t1, t2, t3, t4, standby
+    );
 
-	
+    -- Current og next state signaler
+    signal current_state   : state_type := standby;
+    signal next_state      : state_type;
 
-	
-	begin
-	
-		
-	
-		process(Clk, reset)
-			begin 
-				if reset = '1' then
-					current_state <= standby;
-				elsif rising_edge(clk) AND reset = '0' then 
-					current_state <= next_state;
-				end if;
-		end process;
-		
-		
-		
-		process(current_state, data_in)
-		begin
-			start_state <= '0';
-			control_state <= '0';
-			esc_state <= '0';
-			data1_state <= '0';
-			data2_state <= '0';
-			data3_state <= '0';
-			data4_state <= '0';
-			escfct_state <= '0';
-			t1_state <= '0';
-			t2_state <= '0';
-			t3_state <= '0';
-			t4_state <= '0';
-			standby_state <= '0';
-			
+    -- 8-bit register til opsamling af 4x2-bit input
+    signal data_hold       : std_logic_vector(7 downto 0) := (others => '0');
 
-			
-			
-			case current_state is
-			
-				when standby =>
-					next_state <= start;
-					standby_state <= '1';
+    -- Akkumuleret XOR paritets tjek
+    signal parity_accum    : std_logic;
 
-				
-				when start =>
-					start_state <='1';
-					if data_in(0) = '1' then
-						next_state <= control;
-					elsif data_in(0) = '0' then
-						next_state <= data1;
-					end if;
-					
-				when control =>
-					control_state <= '1';
-					if data_in = "10" or data_in = "01" or data_in = "00" then
-						next_state <= start;
-					elsif data_in = "11" then
-						next_state <= ESC;
-					end if;
-				
-				when ESC =>
-					esc_state <= '1';
-					if data_in(0) = '1' then 
-						next_state <= escfct;
-					elsif data_in(0) = '0' then
-						next_state <= t1;
-					end if;
-				 
-				when escfct =>
-					escfct_state <= '1';
-					next_state <= start;
-				
-				when data1 =>
-					data1_state <= '1';
-					next_state <= data2;
-				
-				when data2 =>
-					data2_state <= '1';
-					next_state <= data3;
-				
-				when data3 =>
-					data3_state <= '1';
-					next_state <= data4;
-				
-				when data4 =>
-					data4_state <= '1';
-					next_state <= start;
-					
-				when t1 =>
-					t1_state <= '1';
-					next_state <= t2;
-				
-				when t2 =>
-					t2_state <= '1';
-					next_state <= t3;
-			
-				when t3 =>
-					t3_state <= '1';
-					next_state <= t4;
-					
-				when t4 =>
-					t4_state <= '1';
-					next_state <= start;
-					
-				
-				when others =>
-					next_state <= start;
-					
-			end case;
-		end process;
-			
-		
-		process(Clk, reset)
-		begin
-			if reset='1' then 
-				data_hold <= (others =>'0');
-			elsif rising_edge(Clk) then
-				case current_state is
-					when data1 =>
-						data_hold(7 downto 6) <= data_in;
-				
-					when data2 =>
-						data_hold(5 downto 4) <= data_in;
-					
-					when data3 =>
-						data_hold(3 downto 2) <= data_in;
-					
-					when data4 =>
-						data_hold(1 downto 0) <= data_in;
-					 
-					when others => 
-						data_hold <= (others =>'0');
-				end case;
+    -- Flag til indikation af om tidligere state var standby
+    signal standby_before  : std_logic;
+
+    -- Flag til indikation af om data karakteren er klar
+    signal data_ready      : std_logic;
+
+begin
+
+    -- FSM State Register: Opdaterer current_state ved rising_edge
+    process(clk, reset)
+    begin 
+        if reset = '1' then
+            current_state <= standby;
+        elsif rising_edge(clk) then 
+            current_state <= next_state;
+        end if;
+    end process;
+
+    -- Next-State logic: Bestemmer FSM-transitions baseret på input
+    process(current_state, data_in)
+    begin
+        case current_state is
+
+            when standby =>
+                next_state <= start;
+
+            when start =>
+                if data_in(0) = '1' then
+                    next_state <= control;
+                elsif data_in(0) = '0' then
+                    next_state <= data1;
+                end if;
+
+            when control =>
+                if data_in = "10" or data_in = "01" or data_in = "00" then
+                    next_state <= start;
+                elsif data_in = "11" then
+                    next_state <= esc;
+                end if;
+
+            when esc =>
+                if data_in(0) = '1' then 
+                    next_state <= escfct;
+                elsif data_in(0) = '0' then
+                    next_state <= t1;
+                end if;
+
+            when escfct =>
+                next_state <= start;
+
+            when data1 =>
+                next_state <= data2;
+
+            when data2 =>
+                next_state <= data3;
+
+            when data3 =>
+                next_state <= data4;
+
+            when data4 =>
+                next_state <= start;
+
+            when t1 =>
+                next_state <= t2;
+
+            when t2 =>
+                next_state <= t3;
+
+            when t3 =>
+                next_state <= t4;
+
+            when t4 =>
+                next_state <= start;
+
+            when others =>
+                next_state <= start;
+
+        end case;
+    end process;
+
+    -- Data Assembler: Indhenter 2-bit input i 8-bit register
+    process(clk)
+    begin
+        if rising_edge(clk) then
+		   if  reset = '1' then 
+            data_hold   <= (others => '0');
+            data_ready  <= '0';
+			else
+            case current_state is
+                when data1 =>
+                    data_hold(7 downto 6) <= data_in;
+                    data_ready <= '0';
+
+                when data2 =>
+                    data_hold(5 downto 4) <= data_in;
+                    data_ready <= '0';
+
+                when data3 =>
+                    data_hold(3 downto 2) <= data_in;
+                    data_ready <= '0';
+
+                when data4 =>
+                    data_hold(1 downto 0) <= data_in;
+                    data_ready <= '1';
+
+                when others => 
+                    data_hold  <= (others => '0');
+                    data_ready <= '0';
+            end case;
 			end if;
-		end process;
-		
-		process(clk, reset)
-		begin
+        end if;
+    end process;
+
+    process(clk, reset)
+    begin
+        if rising_edge(clk) then
 			if reset = '1' then
-				parity_accum <='0';
-				
-			elsif rising_edge(clk) then
-			
-				case current_state is 
-					when standby =>
-						parity_accum <= '0';
-						stand_before <='1';
-					
-					when start =>
-						if stand_before = '1' then
-							parity_accum <= '0';
-							stand_before <='0';
-						else
-							parity_accum <= parity_accum xor data_in(1) xor data_in(0);
-						end if;
-				
-					when esc|data2|data3|data4|escfct|t1|t2|t3|t4 =>
-							parity_accum <= parity_accum xor data_in(1) xor data_in(0);
+            parity_accum <= '0';
+         else 
+            case current_state is 
+                when standby =>
+                    parity_accum    <= '0';
+                    standby_before  <= '1';
 
-					when control|data1 =>
-						parity_accum <=  data_in(1) xor data_in(0);
-					
-					when others => 
-						null;
-						
-					end case;
-					
-				end if;
-			end process;
-		
-		process(current_state, data_in, data_hold)
-			begin
-				FCT <='0';
-				NUL <='0';
-				TS <='0';
-				Nchar <='0';
-				EEP <='0';
-				EOD <='0';
-				p_err <='0';
-				Valid <='0';
-				Data_out <= (others => '0');
-				
-				case current_state is
-									
-					when control =>
-						if parity_accum = '1' then
-								valid <= '1';
-							else
-								p_err <= '1';
-						end if;
-						
-						case data_in is
-							when "00" => FCT <= '1';
-							when "01" => EOD <= '1';
-							when "10" => EEP <= '1';
-							when others => null;
-						end case;
-						
-					when ESC => 
-						if data_in(0) ='1' then 
-							NUL <= '1';
-						else 
-							TS <= '1';
-						end if;
-					
-					when data4 => 
-						Nchar <= '1';
-						
-					
-					when data1 =>
-							if parity_accum = '1' then
-								valid <= '1';
-							else
-								p_err <= '1';
-							end if;
-					
+                when start =>
+                    if standby_before = '1' then
+                        parity_accum   <= '0';
+                        standby_before <= '0';
+                    else
+                        parity_accum <= parity_accum xor data_in(1) xor data_in(0);
+                    end if;
 
-					when start =>
-						Data_out <= data_hold;
-						
-						
-					when others => 
-						null;
-					end case;
-				end process;
-		
-				
-		
+                when esc | data2 | data3 | data4 | escfct | t1 | t2 | t3 | t4 =>
+                    parity_accum <= parity_accum xor data_in(1) xor data_in(0);
+
+                when control | data1 =>
+                    parity_accum <= data_in(1) xor data_in(0);
+
+                when others => 
+                    null;
+            end case;
+			end if;
+        end if;
+    end process;
+
+    -- Output Logic: Sætter protokol-signaler og data-output samt udregner paritet
+    process(current_state, data_in, data_hold)
+    begin
+        FCT      <= '0';
+        NUL      <= '0';
+        TS       <= '0';
+        Nchar    <= '0';
+        EEP      <= '0';
+        EOD      <= '0';
+        p_err    <= '0';
+        Valid    <= '0';
+        Data_out <= (others => '0');
+
+        case current_state is
+
+            when control =>
+                if parity_accum = '1' then
+                    p_err <= '0';
+                    Valid <= '1';
+                else
+                    p_err <= '1';
+                    Valid <= '0';
+                end if;
+
+                case data_in is
+                    when "00" => FCT <= '1';
+                    when "01" => EOD <= '1';
+                    when "10" => EEP <= '1';
+                    when others => null;
+                end case;
+
+            when esc =>
+                if data_in(0) = '1' then 
+                    NUL <= '1';
+                else 
+                    TS  <= '1';
+                end if;
+
+            when data4 =>
+                Nchar <= '1';
+
+            when data1 =>
+                if parity_accum = '1' then
+                    p_err <= '0';
+                    Valid <= '1';
+                else
+                    p_err <= '1';
+                    Valid <= '0';
+                end if;
+
+            when start =>
+                if data_ready = '1' then
+                    Data_out <= data_hold;
+                end if;
+
+            when others =>
+                null;
+        end case;
+    end process;
+
 end architecture sm1_arch;
-			
-		
-			
-			
-
-
